@@ -323,6 +323,8 @@ pub const R_MATERIAL_FROSTED_GLASS: RMaterial = 0x02E2;
 pub const R_MATERIAL_TINTED_GLASS: RMaterial = 0x02E3;
 /// Not a material: "the one of the theme". Removes the material given to a widget.
 pub const R_MATERIAL_DEFAULT: RMaterial = 0x02E4;
+/// Configurable liquid glass, available in every theme.
+pub const R_MATERIAL_LIQUID_GLASS: RMaterial = 0x02E5;
 
 /// Color roles. The comment lists the widgets reading each role.
 pub const RColorRole = c_int;
@@ -1131,6 +1133,38 @@ pub const RDropEvent = extern struct {
     drag_source: Rid = 0,
 };
 
+/// Liquid glass appearance. Lengths are logical pixels, colors straight RGBA.
+/// Initialize with Rliquid_glass_defaults before editing. Corner radii, opacity,
+/// and layout remain the ordinary widget/border properties. No platform API is required.
+pub const RLiquidGlass = extern struct {
+    tint: [4]f32 = [_]f32{0} ** 4,
+    rim: [4]f32 = [_]f32{0} ** 4,
+    shadow_color: [4]f32 = [_]f32{0} ** 4,
+    frost: f32 = 0,
+    /// < 0 clear .. 1 frosted.
+    refraction: f32 = 0,
+    /// < Rim displacement, 0..96.
+    bevel: f32 = 0,
+    /// < Curved edge width, 0 automatic .. 96.
+    saturation: f32 = 0,
+    /// < 0 grayscale .. 4.
+    glow: f32 = 0,
+    /// < Added brightness, -1..1.
+    shadow: f32 = 0,
+    /// < Shadow softness, 0..96.
+    dispersion: f32 = 0,
+    /// < Chromatic separation, 0..1.
+    reflection: f32 = 0,
+    /// < Environment reflection strength, 0..1.
+    light_angle: f32 = 0,
+    /// < Direction of the rim light in degrees, 0..360.
+    interactive: c_int = 0,
+    /// < Respond to the control's hover and pressed states.
+    reduced_transparency: c_int = 0,
+    /// < Opaque fallback without backdrop capture.
+    high_contrast: c_int = 0,
+};
+
 /// What a tile shows, filled by the application when the tile is drawn.
 pub const RTileItem = extern struct {
     /// Name under the icon (valid until the callback returns).
@@ -1328,10 +1362,8 @@ pub extern fn Rinit_ex(desc: ?*const RInitDesc) c_int;
 /// render threads and releases the backend.
 pub extern fn Rshutdown() void;
 pub extern fn Ris_initialized() c_int;
-/// R_TRUE in the free edition of Raven (the default build): every
-/// window shows a small watermark in its bottom right corner. R_FALSE in the
-/// paid edition (the library built with -DRAVEN_PAID=ON), which shows none.
-/// Nothing else differs; what you make with either one is yours.
+/// @deprecated Raven no longer has editions: it is open source (Apache
+/// License 2.0) and never shows a watermark. Always R_FALSE.
 pub extern fn Ris_free_edition() c_int;
 /// Returns: The library version, e.g. "0.1.0".
 pub extern fn Rget_version() ?[*:0]const u8;
@@ -1552,9 +1584,7 @@ pub extern fn Rwindow_get_focused_widget(window: Rid) Rid;
 /// Deepest widget under the cursor, or R_INVALID_ID.
 pub extern fn Rwindow_get_hovered_widget(window: Rid) Rid;
 pub extern fn Rwindow_get_mouse_position(window: Rid, x: ?*f32, y: ?*f32) void;
-/// Where the watermark of the free edition is drawn in the
-/// window (logical units). R_FALSE, and zeros, in the paid edition.
-/// It never takes the mouse; this is for layouts and tests that read pixels.
+/// @deprecated Raven no longer shows a watermark. Always R_FALSE, with zeros.
 pub extern fn Rwindow_get_watermark_rect(window: Rid, x: ?*f32, y: ?*f32, width: ?*f32, height: ?*f32) c_int;
 /// Inject input as if it came from the OS. Positions are in logical units.
 /// Useful for automated tests, replays and when Raven is driven by a host
@@ -1604,6 +1634,12 @@ pub extern fn Rdrag_get_data(window: Rid) ?[*:0]const u8;
 pub extern fn Rdrag_cancel(window: Rid) void;
 pub extern fn Rwindow_register_shortcut(window: Rid, key: RKey, modifiers: u32, action: ?[*:0]const u8) void;
 pub extern fn Rwindow_unregister_shortcut(window: Rid, key: RKey, modifiers: u32) void;
+/// Fills defaults. NULL is ignored.
+pub extern fn Rliquid_glass_defaults(properties: ?*RLiquidGlass) void;
+/// Copies properties; NULL removes the override. Does not change the material.
+pub extern fn Rwidget_set_liquid_glass(widget: Rid, properties: ?*const RLiquidGlass) void;
+/// Copies the widget override, or defaults if absent.
+pub extern fn Rwidget_get_liquid_glass(widget: Rid, properties: ?*RLiquidGlass) void;
 /// Switches to a built-in theme: replaces every theme color and
 /// metric. Colors and metrics changed with Rtheme_set_color and
 /// Rtheme_set_metric are lost; per-widget overrides are kept.

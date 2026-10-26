@@ -156,6 +156,8 @@ typedef struct rvn_glass_t {
 	/** Blur radius of the shadow dropped under the glass, 0 = none. */
 	float shadow;
 	rvn_color_t shadow_color;
+	float dispersion, reflection, light_angle;
+	int liquid, opaque;
 } rvn_glass_t;
 
 /** Rounded rectangle of glass (radii: top-left, top-right, bottom-right, bottom-left). */

@@ -608,7 +608,7 @@ float Rtheme_get_metric(RMetric metric) {
 
 void Rtheme_set_material(RMaterial material) {
 	RVN_API_GUARD_VOID();
-	if (material < R_MATERIAL_SOLID || material > R_MATERIAL_TINTED_GLASS) {
+	if (material < R_MATERIAL_SOLID || material > R_MATERIAL_LIQUID_GLASS || material == R_MATERIAL_DEFAULT) {
 		rvn_error(R_ERROR_INVALID_ENUM, R_SEVERITY_ERROR, "Rtheme_set_material: invalid material");
 		return;
 	}
@@ -624,7 +624,7 @@ RMaterial Rtheme_get_material(void) {
 
 void Rwidget_set_material(Rid id, RMaterial material) {
 	RVN_WIDGET_VOID(widget, id, 0);
-	if (material < R_MATERIAL_SOLID || material > R_MATERIAL_DEFAULT) {
+	if (material < R_MATERIAL_SOLID || material > R_MATERIAL_LIQUID_GLASS) {
 		rvn_error(R_ERROR_INVALID_ENUM, R_SEVERITY_ERROR, "Rwidget_set_material: invalid material");
 		return;
 	}
@@ -707,4 +707,63 @@ float Rwidget_get_metric(Rid id, RMetric metric) {
 		return 0.0f;
 	}
 	return rvn_widget_metric(widget, metric);
+}
+
+void Rliquid_glass_defaults(RLiquidGlass* out) {
+	static const RLiquidGlass defaults = {
+		{1, 1, 1, 0.12f}, {1, 1, 1, 0.85f}, {0, 0, 0, 0.30f},
+		0.18f, 22, 14, 1.35f, 0, 18, 0.14f, 0.45f, 236.31f, 1, 0, 0
+	};
+	if (out) *out = defaults;
+}
+
+void Rwidget_get_liquid_glass(Rid id, RLiquidGlass* out) {
+	RVN_WIDGET_VOID(widget, id, 0);
+	if (!out) return;
+	if (widget->liquid_glass) *out = *widget->liquid_glass;
+	else Rliquid_glass_defaults(out);
+}
+
+void Rwidget_set_liquid_glass(Rid id, const RLiquidGlass* properties) {
+	RVN_WIDGET_VOID(widget, id, 0);
+	RLiquidGlass value;
+	int i;
+	if (!properties) {
+		rvn_free(widget->liquid_glass);
+		widget->liquid_glass = NULL;
+		rvn_widget_invalidate_paint(widget);
+		return;
+	}
+	value = *properties;
+	for (i = 0; i < 4; ++i) {
+		if (!isfinite(value.tint[i]) || !isfinite(value.rim[i]) || !isfinite(value.shadow_color[i])) goto invalid;
+		value.tint[i] = rvn_clampf(value.tint[i], 0, 1);
+		value.rim[i] = rvn_clampf(value.rim[i], 0, 1);
+		value.shadow_color[i] = rvn_clampf(value.shadow_color[i], 0, 1);
+	}
+#define RVN_GLASS_RANGE(field, lo, hi) \
+	if (!isfinite(value.field)) goto invalid; \
+	value.field = rvn_clampf(value.field, lo, hi)
+	RVN_GLASS_RANGE(frost, 0, 1);
+	RVN_GLASS_RANGE(refraction, 0, 96);
+	RVN_GLASS_RANGE(bevel, 0, 96);
+	RVN_GLASS_RANGE(saturation, 0, 4);
+	RVN_GLASS_RANGE(glow, -1, 1);
+	RVN_GLASS_RANGE(shadow, 0, 96);
+	RVN_GLASS_RANGE(dispersion, 0, 1);
+	RVN_GLASS_RANGE(reflection, 0, 1);
+	RVN_GLASS_RANGE(light_angle, 0, 360);
+#undef RVN_GLASS_RANGE
+	value.interactive = !!value.interactive;
+	value.reduced_transparency = !!value.reduced_transparency;
+	value.high_contrast = !!value.high_contrast;
+	if (!widget->liquid_glass) {
+		widget->liquid_glass = rvn_alloc(sizeof(value));
+		if (!widget->liquid_glass) return;
+	}
+	*widget->liquid_glass = value;
+	rvn_widget_invalidate_paint(widget);
+	return;
+invalid:
+	rvn_error(R_ERROR_INVALID_VALUE, R_SEVERITY_ERROR, "liquid glass properties must be finite");
 }

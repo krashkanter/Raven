@@ -510,6 +510,10 @@ void rvn_paint_glass(RPainter* painter, rvn_rect_t rect, const float radii[4], c
 	if (box.x1 <= box.x0 || box.y1 <= box.y0 || painter->opacity <= 0.0f) return;
 	if (!rvn_box_overlaps(box, painter->clip)) return;
 
+	if (glass->opaque) {
+		rvn_paint_box4(painter, rect, radii, glass->tint, glass->opaque == 2 ? 2.0f : 0.0f, glass->rim);
+		return;
+	}
 	half = rvn_minf(box.x1 - box.x0, box.y1 - box.y0) * 0.5f;
 	bevel = glass->bevel > 0.0f ? glass->bevel : rvn_clampf(rvn_minf(rect.w, rect.h) * 0.42f, 3.0f, 14.0f);
 	bevel = rvn_minf(bevel * painter->scale, half * 0.95f);
@@ -517,7 +521,7 @@ void rvn_paint_glass(RPainter* painter, rvn_rect_t rect, const float radii[4], c
 
 	/* the backdrop is taken before the shadow, so that the glass does not see its own shadow */
 	/* (what the shader reads around the slab: the bent rim, and the reflection on it) */
-	margin = rvn_maxf(refraction, bevel * 1.5f + 6.0f) + 2.0f;
+	margin = rvn_maxf(refraction * (1.0f + (glass->liquid ? glass->dispersion : 0.14f)), bevel * 1.5f + 6.0f) + 2.0f;
 	rvn_drawlist_add_backdrop(painter->list, rvn_box_intersect(painter->clip,
 		rvn_box(box.x0 - margin, box.y0 - margin, box.x1 + margin, box.y1 + margin)));
 	if (glass->shadow > 0.0f) {
@@ -540,6 +544,10 @@ void rvn_paint_glass(RPainter* painter, rvn_rect_t rect, const float radii[4], c
 	instance->border_color = glass->rim;
 	instance->border_width = bevel;
 	instance->flags = R_PRIM_GLASS | ((uint32_t)(rvn_clampf(painter->opacity, 0.0f, 1.0f) * 255.0f + 0.5f) << 8);
+	if (glass->liquid) instance->flags |= 64u
+		| ((uint32_t)(glass->dispersion * 31.0f + 0.5f) << 16)
+		| ((uint32_t)(glass->reflection * 31.0f + 0.5f) << 21)
+		| ((uint32_t)(glass->light_angle * (63.0f / 360.0f) + 0.5f) << 26);
 }
 
 void rvn_paint_blur(RPainter* painter, rvn_rect_t rect, const float radii[4], const rvn_blur_t* blur) {

@@ -75,6 +75,9 @@ add_test(NAME test_xmlcpp COMMAND test_xmlcpp)
 if(RAVEN_BACKEND_VULKAN)
 	raven_add_test(test_render)
 	set_tests_properties(test_render PROPERTIES SKIP_RETURN_CODE 77)
+	add_test(NAME test_liquid_glass_render COMMAND ${CMAKE_COMMAND} -E env
+		RAVEN_TEST_LIQUID_GLASS_ONLY=1 $<TARGET_FILE:test_render>)
+	set_tests_properties(test_liquid_glass_render PROPERTIES SKIP_RETURN_CODE 77)
 endif()
 
 # Not a test: prints timings for a large widget tree (see the top of benchmark.c).

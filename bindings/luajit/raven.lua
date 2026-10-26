@@ -250,6 +250,7 @@ typedef enum RMaterial {
 	R_MATERIAL_FROSTED_GLASS = 738,
 	R_MATERIAL_TINTED_GLASS = 739,
 	R_MATERIAL_DEFAULT = 740,
+	R_MATERIAL_LIQUID_GLASS = 741,
 } RMaterial;
 typedef enum RColorRole {
 	R_COLOR_WINDOW = 256,
@@ -614,6 +615,7 @@ typedef struct RFrameStats RFrameStats;
 typedef struct RNativeWindow RNativeWindow;
 typedef struct REvent REvent;
 typedef struct RDropEvent RDropEvent;
+typedef struct RLiquidGlass RLiquidGlass;
 typedef struct RTileItem RTileItem;
 typedef struct RLanguageDesc RLanguageDesc;
 typedef struct RFileFilter RFileFilter;
@@ -751,6 +753,23 @@ struct RDropEvent {
 	const char* text;
 	const char* drag_type;
 	Rid drag_source;
+};
+struct RLiquidGlass {
+	float tint[4];
+	float rim[4];
+	float shadow_color[4];
+	float frost;
+	float refraction;
+	float bevel;
+	float saturation;
+	float glow;
+	float shadow;
+	float dispersion;
+	float reflection;
+	float light_angle;
+	int interactive;
+	int reduced_transparency;
+	int high_contrast;
 };
 struct RTileItem {
 	const char* text;
@@ -976,6 +995,9 @@ const char* Rdrag_get_data(Rid window);
 void Rdrag_cancel(Rid window);
 void Rwindow_register_shortcut(Rid window, RKey key, Ruint modifiers, const char* action);
 void Rwindow_unregister_shortcut(Rid window, RKey key, Ruint modifiers);
+void Rliquid_glass_defaults(RLiquidGlass* properties);
+void Rwidget_set_liquid_glass(Rid widget, const RLiquidGlass* properties);
+void Rwidget_get_liquid_glass(Rid widget, RLiquidGlass* properties);
 void Rtheme_apply(RTheme theme);
 void Rtheme_set_color(RColorRole role, float r, float g, float b, float a);
 void Rtheme_get_color(RColorRole role, float* r, float* g, float* b, float* a);

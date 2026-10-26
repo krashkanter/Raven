@@ -96,6 +96,12 @@ public:
 	using Handle::Handle;
 	constexpr Widget() noexcept = default;
 
+	/// Copies properties; NULL removes the override. Does not change the material.
+	void set_liquid_glass(const RLiquidGlass* properties) const { Rwidget_set_liquid_glass(id_, properties); }
+
+	/// Copies the widget override, or defaults if absent.
+	void get_liquid_glass(RLiquidGlass* properties) const { Rwidget_get_liquid_glass(id_, properties); }
+
 	/// Creates a widget. It is not shown until it is added to a parent
 	/// that belongs to a window (Rwidget_add_child, Rwindow_set_content).
 	static Widget create(RWidgetType type) { return Widget(Rwidget_create(type)); }
@@ -1700,9 +1706,7 @@ public:
 
 	void get_mouse_position(float* x, float* y) const { Rwindow_get_mouse_position(id_, x, y); }
 
-	/// Where the watermark of the free edition is drawn in the
-	/// window (logical units). R_FALSE, and zeros, in the paid edition.
-	/// It never takes the mouse; this is for layouts and tests that read pixels.
+	/// @deprecated Raven no longer shows a watermark. Always R_FALSE, with zeros.
 	int get_watermark_rect(float* x, float* y, float* width, float* height) const { return Rwindow_get_watermark_rect(id_, x, y, width, height); }
 
 	/// Inject input as if it came from the OS. Positions are in logical units.
@@ -2124,10 +2128,8 @@ inline void shutdown() { Rshutdown(); }
 
 inline int is_initialized() { return Ris_initialized(); }
 
-/// R_TRUE in the free edition of Raven (the default build): every
-/// window shows a small watermark in its bottom right corner. R_FALSE in the
-/// paid edition (the library built with -DRAVEN_PAID=ON), which shows none.
-/// Nothing else differs; what you make with either one is yours.
+/// @deprecated Raven no longer has editions: it is open source (Apache
+/// License 2.0) and never shows a watermark. Always R_FALSE.
 inline int is_free_edition() { return Ris_free_edition(); }
 
 /// Returns: The library version, e.g. "0.1.0".
@@ -2334,6 +2336,9 @@ inline const char* drag_get_data(Rid window) { return Rdrag_get_data(window); }
 
 /// Ends the drag in progress without dropping (the target receives R_DROP_LEAVE).
 inline void drag_cancel(Rid window) { Rdrag_cancel(window); }
+
+/// Fills defaults. NULL is ignored.
+inline void liquid_glass_defaults(RLiquidGlass* properties) { Rliquid_glass_defaults(properties); }
 
 /// Switches to a built-in theme: replaces every theme color and
 /// metric. Colors and metrics changed with Rtheme_set_color and

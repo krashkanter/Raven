@@ -63,7 +63,11 @@ float sd_round_box_normal(vec2 p, vec2 half_size, vec4 radii, out vec2 normal) {
  * little, and catches the light.
  */
 vec4 glass(vec2 p, float d, vec2 normal) {
-	float frost = v_params.x;
+	bool liquid = (v_flags & 64u) != 0u;
+    float dispersion = liquid ? float((v_flags >> 16) & 31u) / 31.0 : 0.14;
+    float reflection = liquid ? float((v_flags >> 21) & 31u) / 31.0 : 0.45;
+    float angle = float(v_flags >> 26) * (6.28318530718 / 63.0);
+    float frost = v_params.x;
 	float refraction = v_params.y;
 	float bevel = max(v_border_width, 1.0);
 
@@ -74,7 +78,7 @@ vec4 glass(vec2 p, float d, vec2 normal) {
 	/* the rim shows what lies further inside: content appears pulled toward the edge */
 	vec2 shift = -normal * bend * refraction;
 	vec2 uv = (p + shift) * v_inv_size;
-	vec2 spread = shift * 0.14 * v_inv_size;
+	vec2 spread = shift * dispersion * v_inv_size;
 	vec4 middle = textureLod(u_backdrop, uv, 0.0);
 	vec3 sharp = vec3(
 		textureLod(u_backdrop, uv + spread, 0.0).r,
@@ -95,7 +99,7 @@ vec4 glass(vec2 p, float d, vec2 normal) {
 
 	/* light comes from the top left: a thin bright line on the rim, strongest
 	 * where it faces the light, with an echo on the opposite side */
-	const vec2 light = vec2(-0.5547, -0.8321);
+	vec2 light = liquid ? vec2(cos(angle), sin(angle)) : vec2(-0.5547, -0.8321);
 	float facing = dot(normal, light);
 	float lit = 0.22 + (facing > 0.0 ? pow(facing, 1.5) : 0.5 * pow(-facing, 1.5));
 	float line_width = clamp(bevel * 0.12, 1.0, 2.5);
@@ -106,7 +110,7 @@ vec4 glass(vec2 p, float d, vec2 normal) {
 	 * so colors that come close to the glass show on its edge before they
 	 * pass under it */
 	vec3 around = textureLod(u_backdrop_blur, (p + normal * (bevel * 1.5 + 6.0)) * v_inv_size, 0.0).rgb;
-	color += around * (1.0 - color) * bend * 0.45 * v_border_color.a;
+	color += around * (1.0 - color) * bend * reflection * v_border_color.a;
 
 	/* a slab is a little brighter at the top than at the bottom */
 	float height = max(v_rect.w - v_rect.y, 1.0);

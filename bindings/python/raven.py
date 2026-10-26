@@ -558,12 +558,14 @@ class RMaterial(enum.IntEnum):
     R_MATERIAL_FROSTED_GLASS = 0x02E2
     R_MATERIAL_TINTED_GLASS = 0x02E3
     R_MATERIAL_DEFAULT = 0x02E4
+    R_MATERIAL_LIQUID_GLASS = 0x02E5
 
 R_MATERIAL_SOLID = RMaterial.R_MATERIAL_SOLID
 R_MATERIAL_GLASS = RMaterial.R_MATERIAL_GLASS
 R_MATERIAL_FROSTED_GLASS = RMaterial.R_MATERIAL_FROSTED_GLASS
 R_MATERIAL_TINTED_GLASS = RMaterial.R_MATERIAL_TINTED_GLASS
 R_MATERIAL_DEFAULT = RMaterial.R_MATERIAL_DEFAULT
+R_MATERIAL_LIQUID_GLASS = RMaterial.R_MATERIAL_LIQUID_GLASS
 
 class RColorRole(enum.IntEnum):
     """Color roles. The comment lists the widgets reading each role."""
@@ -1371,6 +1373,29 @@ class RDropEvent(ctypes.Structure):
     ]
 
 
+class RLiquidGlass(ctypes.Structure):
+    """Liquid glass appearance. Lengths are logical pixels, colors straight RGBA.
+    Initialize with Rliquid_glass_defaults before editing. Corner radii, opacity,
+    and layout remain the ordinary widget/border properties. No platform API is required."""
+    _fields_ = [
+        ("tint", ctypes.c_float * 4),
+        ("rim", ctypes.c_float * 4),
+        ("shadow_color", ctypes.c_float * 4),
+        ("frost", ctypes.c_float),
+        ("refraction", ctypes.c_float),
+        ("bevel", ctypes.c_float),
+        ("saturation", ctypes.c_float),
+        ("glow", ctypes.c_float),
+        ("shadow", ctypes.c_float),
+        ("dispersion", ctypes.c_float),
+        ("reflection", ctypes.c_float),
+        ("light_angle", ctypes.c_float),
+        ("interactive", ctypes.c_int),
+        ("reduced_transparency", ctypes.c_int),
+        ("high_contrast", ctypes.c_int),
+    ]
+
+
 class RTileItem(ctypes.Structure):
     """What a tile shows, filled by the application when the tile is drawn."""
     _fields_ = [
@@ -1997,10 +2022,8 @@ _lib.Ris_free_edition.restype = ctypes.c_int
 
 
 def Ris_free_edition():
-    """R_TRUE in the free edition of Raven (the default build): every
-    window shows a small watermark in its bottom right corner. R_FALSE in the
-    paid edition (the library built with -DRAVEN_PAID=ON), which shows none.
-    Nothing else differs; what you make with either one is yours."""
+    """@deprecated Raven no longer has editions: it is open source (Apache
+    License 2.0) and never shows a watermark. Always R_FALSE."""
     return _lib.Ris_free_edition()
 
 
@@ -2911,9 +2934,7 @@ _lib.Rwindow_get_watermark_rect.restype = ctypes.c_int
 
 
 def Rwindow_get_watermark_rect(window):
-    """Where the watermark of the free edition is drawn in the
-    window (logical units). R_FALSE, and zeros, in the paid edition.
-    It never takes the mouse; this is for layouts and tests that read pixels."""
+    """@deprecated Raven no longer shows a watermark. Always R_FALSE, with zeros."""
     x_ = ctypes.c_float()
     y_ = ctypes.c_float()
     width_ = ctypes.c_float()
@@ -3124,6 +3145,33 @@ _lib.Rwindow_unregister_shortcut.restype = None
 
 def Rwindow_unregister_shortcut(window, key, modifiers):
     _lib.Rwindow_unregister_shortcut(window, int(key), modifiers)
+
+
+_lib.Rliquid_glass_defaults.argtypes = [ctypes.POINTER(RLiquidGlass)]
+_lib.Rliquid_glass_defaults.restype = None
+
+
+def Rliquid_glass_defaults(properties):
+    """Fills defaults. NULL is ignored."""
+    _lib.Rliquid_glass_defaults(_p(properties))
+
+
+_lib.Rwidget_set_liquid_glass.argtypes = [ctypes.c_uint32, ctypes.POINTER(RLiquidGlass)]
+_lib.Rwidget_set_liquid_glass.restype = None
+
+
+def Rwidget_set_liquid_glass(widget, properties):
+    """Copies properties; NULL removes the override. Does not change the material."""
+    _lib.Rwidget_set_liquid_glass(widget, _p(properties))
+
+
+_lib.Rwidget_get_liquid_glass.argtypes = [ctypes.c_uint32, ctypes.POINTER(RLiquidGlass)]
+_lib.Rwidget_get_liquid_glass.restype = None
+
+
+def Rwidget_get_liquid_glass(widget, properties):
+    """Copies the widget override, or defaults if absent."""
+    _lib.Rwidget_get_liquid_glass(widget, _p(properties))
 
 
 _lib.Rtheme_apply.argtypes = [ctypes.c_int]

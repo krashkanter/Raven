@@ -9,6 +9,7 @@
 
 #include "../widgets/common.h"
 #include "xml.h"
+#include <math.h>
 
 /* ---------------------------------------------------------------------------
  *  Values
@@ -264,6 +265,7 @@ static int rvn_parse_cursor(const char* value, RCursor* cursor) {
 
 int rvn_parse_material(const char* text, RMaterial* material) {
 	static const struct { const char* name; RMaterial material; } materials[] = {
+		{ "LiquidGlass", R_MATERIAL_LIQUID_GLASS },
 		{ "Solid", R_MATERIAL_SOLID }, { "Glass", R_MATERIAL_GLASS }, { "ClearGlass", R_MATERIAL_GLASS },
 		{ "FrostedGlass", R_MATERIAL_FROSTED_GLASS }, { "Frosted", R_MATERIAL_FROSTED_GLASS },
 		{ "TintedGlass", R_MATERIAL_TINTED_GLASS }, { "Tinted", R_MATERIAL_TINTED_GLASS },
@@ -407,6 +409,44 @@ int rvn_widget_set_base_attribute(rvn_widget_t* widget, const char* name, const 
 		if (!rvn_parse_material(value, &material)) return R_FALSE;
 		widget->material = material == R_MATERIAL_DEFAULT ? (RMaterial)0 : material;
 		rvn_widget_invalidate_layout(widget);
+	} else if (rvn_strnicmp(name, "LiquidGlass.", 12) == 0) {
+		RLiquidGlass look;
+		Rwidget_get_liquid_glass(widget->id, &look);
+		if (rvn_stricmp(name + 12, "Frost") == 0) { if (!rvn_parse_float(value, &look.frost) || !isfinite(look.frost)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "Refraction") == 0) { if (!rvn_parse_float(value, &look.refraction) || !isfinite(look.refraction)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "Bevel") == 0) { if (!rvn_parse_float(value, &look.bevel) || !isfinite(look.bevel)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "Saturation") == 0) { if (!rvn_parse_float(value, &look.saturation) || !isfinite(look.saturation)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "Glow") == 0) { if (!rvn_parse_float(value, &look.glow) || !isfinite(look.glow)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "Shadow") == 0) { if (!rvn_parse_float(value, &look.shadow) || !isfinite(look.shadow)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "Dispersion") == 0) { if (!rvn_parse_float(value, &look.dispersion) || !isfinite(look.dispersion)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "Reflection") == 0) { if (!rvn_parse_float(value, &look.reflection) || !isfinite(look.reflection)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "LightAngle") == 0) { if (!rvn_parse_float(value, &look.light_angle) || !isfinite(look.light_angle)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "Interactive") == 0) { if (!rvn_parse_bool(value, &look.interactive)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "ReducedTransparency") == 0) { if (!rvn_parse_bool(value, &look.reduced_transparency)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "HighContrast") == 0) { if (!rvn_parse_bool(value, &look.high_contrast)) return R_FALSE; }
+		else if (rvn_stricmp(name + 12, "Tint") == 0) {
+			if (!rvn_parse_color(value, &color)) return R_FALSE;
+			look.tint[0] = (float)(color & 255u) / 255.0f;
+			look.tint[1] = (float)((color >> 8) & 255u) / 255.0f;
+			look.tint[2] = (float)((color >> 16) & 255u) / 255.0f;
+			look.tint[3] = (float)rvn_color_a(color) / 255.0f;
+		}
+		else if (rvn_stricmp(name + 12, "Rim") == 0) {
+			if (!rvn_parse_color(value, &color)) return R_FALSE;
+			look.rim[0] = (float)(color & 255u) / 255.0f;
+			look.rim[1] = (float)((color >> 8) & 255u) / 255.0f;
+			look.rim[2] = (float)((color >> 16) & 255u) / 255.0f;
+			look.rim[3] = (float)rvn_color_a(color) / 255.0f;
+		}
+		else if (rvn_stricmp(name + 12, "ShadowColor") == 0) {
+			if (!rvn_parse_color(value, &color)) return R_FALSE;
+			look.shadow_color[0] = (float)(color & 255u) / 255.0f;
+			look.shadow_color[1] = (float)((color >> 8) & 255u) / 255.0f;
+			look.shadow_color[2] = (float)((color >> 16) & 255u) / 255.0f;
+			look.shadow_color[3] = (float)rvn_color_a(color) / 255.0f;
+		}
+		else return R_FALSE;
+		Rwidget_set_liquid_glass(widget->id, &look);
 	} else if (RVN_ATTR("Class")) {
 		if (rvn_str_set(&widget->classes, value[0] ? value : NULL)) {
 			widget->style_generation = 0;

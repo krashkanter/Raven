@@ -203,6 +203,7 @@ struct rvn_widget_t {
 	rvn_style_t* style;
 	/** Material of its own, or 0 for the one of the theme. */
 	RMaterial material;
+	RLiquidGlass* liquid_glass;
 	/** Classes, separated by spaces, or NULL. */
 	char* classes;
 	/** Theme of the widget: its own or the one of an ancestor; NULL = the theme in use. */

@@ -74,6 +74,11 @@
  *   border_color  color of the light caught by the rim; its alpha is the intensity
  *   border_width  width in pixels of the curved rim that refracts
  *   flags         bits 8..15 = opacity of the whole primitive, 0..255
+ * Liquid glass sets flag bit 6. When set, bits 16..20 encode dispersion
+ * (0..31 maps to 0..1), bits 21..25 reflection (same), bits 26..31 light
+ * direction (0..63 maps to 0..360 degrees). When clear, use the original
+ * constants: dispersion .14, reflection .45, light direction (-.5547,-.8321).
+ * Reduced transparency / high contrast emit RECT instead, with no backdrop.
  * A backend without backdrop support may draw GLASS as a rounded rectangle
  * filled with `color`.
  *

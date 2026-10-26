@@ -445,6 +445,62 @@ static void test_materials(void) {
 	Rwindow_destroy(window);
 }
 
+static uint64_t liquid_frame_hash(void) {
+	uint64_t hash = 1469598103934665603ULL;
+	size_t i;
+	for (i = 0; i < (size_t)g_width * (size_t)g_height * 4; ++i) {
+		hash ^= g_pixels[i]; hash *= 1099511628211ULL;
+	}
+	return hash;
+}
+
+static void test_liquid_glass_pixels(void) {
+	Rid window = window_from(
+		"<Window Width=\"240\" Height=\"160\"><Canvas>"
+		"<Border Background=\"#1269CB\" Slot.Size=\"240,160\"/>"
+		"<Border Background=\"#F24D24\" Slot.Position=\"80,0\" Slot.Size=\"55,160\"/>"
+		"<Border Background=\"#39DA84\" Slot.Position=\"0,75\" Slot.Size=\"240,20\"/>"
+		"<Border Name=\"glass\" Material=\"LiquidGlass\" CornerRadius=\"24\" Slot.Position=\"30,30\" Slot.Size=\"180,100\"/>"
+		"</Canvas></Window>");
+	Rid panel = Rwidget_find(window, "glass");
+	RLiquidGlass base, look;
+	RFrameStats stats;
+	uint64_t original;
+	Rliquid_glass_defaults(&base);
+	base.frost = 0;
+	base.refraction = 40;
+	Rwidget_set_liquid_glass(panel, &base);
+	capture(window);
+	original = liquid_frame_hash();
+	Rwindow_get_frame_stats(window, &stats);
+	CHECK(stats.backdrop_count > 0);
+#define LIQUID_CHANGES(field, value) do { \
+	look = base; look.field = value; \
+	Rwidget_set_liquid_glass(panel, &look); capture(window); \
+	CHECK(liquid_frame_hash() != original); \
+} while (0)
+	LIQUID_CHANGES(frost, 1);
+	LIQUID_CHANGES(refraction, 0);
+	LIQUID_CHANGES(bevel, 35);
+	LIQUID_CHANGES(saturation, 0);
+	LIQUID_CHANGES(glow, 0.2f);
+	LIQUID_CHANGES(shadow, 0);
+	LIQUID_CHANGES(dispersion, 1);
+	LIQUID_CHANGES(reflection, 0);
+	LIQUID_CHANGES(light_angle, 90);
+	LIQUID_CHANGES(tint[0], 0);
+	LIQUID_CHANGES(rim[3], 0);
+	LIQUID_CHANGES(shadow_color[3], 0);
+	LIQUID_CHANGES(reduced_transparency, 1);
+	Rwindow_get_frame_stats(window, &stats);
+	CHECK(stats.backdrop_count == 0);
+	LIQUID_CHANGES(high_contrast, 1);
+	Rwindow_get_frame_stats(window, &stats);
+	CHECK(stats.backdrop_count == 0);
+#undef LIQUID_CHANGES
+	Rwindow_destroy(window);
+}
+
 static void paint_curves(Rid widget, RPainter* painter, float width, float height, void* user_data) {
 	(void)widget;
 	(void)width;
@@ -738,6 +794,12 @@ int main(void) {
 	g_test_checks = 0;
 	g_test_failures = 0;
 
+	if (getenv("RAVEN_TEST_LIQUID_GLASS_ONLY")) {
+		RUN(test_liquid_glass_pixels);
+		Rpixels_free(g_pixels);
+		Rshutdown();
+		return test_report("test_liquid_glass_render");
+	}
 	RUN(test_shapes);
 	RUN(test_clipping);
 	RUN(test_textures);
@@ -746,6 +808,7 @@ int main(void) {
 	RUN(test_glass);
 	RUN(test_glass_theme);
 	RUN(test_materials);
+	RUN(test_liquid_glass_pixels);
 	RUN(test_curves_and_blur);
 	RUN(test_node_graph);
 	RUN(test_viewport);

@@ -1153,3 +1153,10 @@ of the Roboto font (Apache 2.0, Google) and a subset of Roboto Mono (SIL Open
 Font License 1.1) are included under `third_party/`; see
 [THIRD_PARTY.md](THIRD_PARTY.md). The Vulkan headers (Apache 2.0 / MIT,
 Khronos) are needed to build but are not part of this repository.
+
+### Liquid glass surfaces
+
+`R_MATERIAL_LIQUID_GLASS` / `Material="LiquidGlass"` adds configurable optical
+surfaces in any theme. `RLiquidGlass` exposes frost, refraction, bevel, saturation,
+glow, shadows, chromatic dispersion, reflections, lighting, RGBA colors and
+accessibility fallbacks through C and XML. See [the liquid glass guide](docs/liquid-glass.md).

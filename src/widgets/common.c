@@ -142,6 +142,9 @@ void rvn_glass_style(const rvn_widget_t* widget, rvn_surface_t kind, float hover
 	/* touched glass lights up */
 	glass->glow = (dark ? 0.05f : 0.03f) * press;
 	rvn_glass_tune(widget, glass);
+	if (rvn_widget_material(widget) == R_MATERIAL_LIQUID_GLASS &&
+		(!widget->liquid_glass || widget->liquid_glass->interactive))
+		glass->glow += hover * 0.025f + press * 0.06f;
 }
 
 void rvn_glass_tune(const rvn_widget_t* widget, rvn_glass_t* glass) {
@@ -159,6 +162,29 @@ void rvn_glass_tune(const rvn_widget_t* widget, rvn_glass_t* glass) {
 		glass->rim = (glass->rim & 0x00FFFFFFu) | (alpha << 24);
 	}
 	if (shadow != 1.0f) glass->shadow *= rvn_maxf(shadow, 0.0f);
+	if (rvn_widget_material(widget) == R_MATERIAL_LIQUID_GLASS) {
+		RLiquidGlass defaults;
+		const RLiquidGlass* look = widget->liquid_glass;
+		if (!look) { Rliquid_glass_defaults(&defaults); look = &defaults; }
+		glass->liquid = 1;
+		glass->tint = rvn_rgba(look->tint[0], look->tint[1], look->tint[2], look->tint[3]);
+		glass->rim = rvn_rgba(look->rim[0], look->rim[1], look->rim[2], look->rim[3]);
+		glass->shadow_color = rvn_rgba(look->shadow_color[0], look->shadow_color[1], look->shadow_color[2], look->shadow_color[3]);
+		glass->frost = look->frost;
+		glass->refraction = look->refraction;
+		glass->bevel = look->bevel;
+		glass->saturation = look->saturation;
+		glass->glow = look->glow;
+		glass->shadow = look->shadow;
+		glass->dispersion = look->dispersion;
+		glass->reflection = look->reflection;
+		glass->light_angle = look->light_angle;
+		glass->opaque = look->high_contrast ? 2 : look->reduced_transparency;
+		if (glass->opaque) {
+			glass->tint = rvn_widget_color(widget, R_COLOR_PANEL) | 0xFF000000u;
+			glass->rim = rvn_widget_color(widget, R_COLOR_TEXT);
+		}
+	}
 }
 
 void rvn_paint_surface(RPainter* painter, const rvn_widget_t* widget, rvn_rect_t rect, float radius,

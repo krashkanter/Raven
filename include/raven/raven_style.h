@@ -71,8 +71,30 @@ typedef enum RMaterial{
 	/** Frosted glass colored by the accent color of the theme (or of the widget): for what must stand out. */
 	R_MATERIAL_TINTED_GLASS,
 	/** Not a material: "the one of the theme". Removes the material given to a widget. */
-	R_MATERIAL_DEFAULT
+	R_MATERIAL_DEFAULT,
+	/** Configurable liquid glass, available in every theme. */
+	R_MATERIAL_LIQUID_GLASS
 }RMaterial;
+
+/** Liquid glass appearance. Lengths are logical pixels, colors straight RGBA.
+ * Initialize with Rliquid_glass_defaults before editing. Corner radii, opacity,
+ * and layout remain the ordinary widget/border properties. No platform API is required.
+ */
+typedef struct RLiquidGlass {
+	float tint[4], rim[4], shadow_color[4];
+	float frost;       /**< 0 clear .. 1 frosted. */
+	float refraction;  /**< Rim displacement, 0..96. */
+	float bevel;       /**< Curved edge width, 0 automatic .. 96. */
+	float saturation;  /**< 0 grayscale .. 4. */
+	float glow;        /**< Added brightness, -1..1. */
+	float shadow;      /**< Shadow softness, 0..96. */
+	float dispersion;  /**< Chromatic separation, 0..1. */
+	float reflection;  /**< Environment reflection strength, 0..1. */
+	float light_angle; /**< Direction of the rim light in degrees, 0..360. */
+	int interactive;   /**< Respond to the control's hover and pressed states. */
+	int reduced_transparency; /**< Opaque fallback without backdrop capture. */
+	int high_contrast; /**< Opaque fallback with a defined outline. */
+} RLiquidGlass;
 
 /** Color roles. The comment lists the widgets reading each role. */
 typedef enum RColorRole{
@@ -180,6 +202,13 @@ typedef enum RMetric{
 #ifdef __cplusplus
 extern "C" {
 #endif
+	/** Fills defaults. NULL is ignored. */
+	RAVEN_API void Rliquid_glass_defaults(RLiquidGlass* properties);
+	/** Copies properties; NULL removes the override. Does not change the material. */
+	RAVEN_API void Rwidget_set_liquid_glass(Rid widget, const RLiquidGlass* properties);
+	/** Copies the widget override, or defaults if absent. */
+	RAVEN_API void Rwidget_get_liquid_glass(Rid widget, RLiquidGlass* properties);
+
 
 	/**
 	 * @brief Switches to a built-in theme: replaces every theme color and

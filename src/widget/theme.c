@@ -778,6 +778,7 @@ static const char* rvn_material_name(RMaterial material) {
 		case R_MATERIAL_GLASS: return "Glass";
 		case R_MATERIAL_FROSTED_GLASS: return "FrostedGlass";
 		case R_MATERIAL_TINTED_GLASS: return "TintedGlass";
+		case R_MATERIAL_LIQUID_GLASS: return "LiquidGlass";
 		default: return "Solid";
 	}
 }
@@ -890,7 +891,7 @@ void Rtheme_set_style_metric(const char* widget, const char* style_class, RMetri
 void Rtheme_set_style_material(const char* widget, const char* style_class, RMaterial material) {
 	rvn_style_rule_t* rule;
 	RVN_API_GUARD_VOID();
-	if (material < R_MATERIAL_SOLID || material > R_MATERIAL_DEFAULT) {
+	if (material < R_MATERIAL_SOLID || material > R_MATERIAL_LIQUID_GLASS) {
 		rvn_error(R_ERROR_INVALID_ENUM, R_SEVERITY_ERROR, "Rtheme_set_style_material: invalid material");
 		return;
 	}

@@ -121,7 +121,7 @@ static void rvn_border_paint(rvn_widget_t* widget, RPainter* painter) {
 		for (i = 0; i < 4; i++) {
 			radii[i] = border->has_radii ? border->radii[i] : (rvn_widget_has_metric(widget, R_METRIC_CORNER_RADIUS) ? rvn_widget_metric(widget, R_METRIC_CORNER_RADIUS) : 20.0f);
 		}
-		glass.shadow = border->shadow_blur;
+		if (!glass.liquid) glass.shadow = border->shadow_blur;
 		rvn_paint_glass(painter, rect, radii, &glass);
 		return;
 	}

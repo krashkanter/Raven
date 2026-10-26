@@ -407,6 +407,10 @@ namespace Raven
         /// Not a material: "the one of the theme". Removes the material given to a widget.
         /// </summary>
         R_MATERIAL_DEFAULT = 0x02E4,
+        /// <summary>
+        /// Configurable liquid glass, available in every theme.
+        /// </summary>
+        R_MATERIAL_LIQUID_GLASS = 0x02E5,
     }
 
     /// <summary>
@@ -1523,6 +1527,67 @@ namespace Raven
     }
 
     /// <summary>
+    /// Liquid glass appearance. Lengths are logical pixels, colors straight RGBA.
+    /// Initialize with Rliquid_glass_defaults before editing. Corner radii, opacity,
+    /// and layout remain the ordinary widget/border properties. No platform API is required.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RLiquidGlass
+    {
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] tint;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] rim;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] shadow_color;
+        public float frost;
+        /// <summary>
+        /// &lt; 0 clear .. 1 frosted.
+        /// </summary>
+        public float refraction;
+        /// <summary>
+        /// &lt; Rim displacement, 0..96.
+        /// </summary>
+        public float bevel;
+        /// <summary>
+        /// &lt; Curved edge width, 0 automatic .. 96.
+        /// </summary>
+        public float saturation;
+        /// <summary>
+        /// &lt; 0 grayscale .. 4.
+        /// </summary>
+        public float glow;
+        /// <summary>
+        /// &lt; Added brightness, -1..1.
+        /// </summary>
+        public float shadow;
+        /// <summary>
+        /// &lt; Shadow softness, 0..96.
+        /// </summary>
+        public float dispersion;
+        /// <summary>
+        /// &lt; Chromatic separation, 0..1.
+        /// </summary>
+        public float reflection;
+        /// <summary>
+        /// &lt; Environment reflection strength, 0..1.
+        /// </summary>
+        public float light_angle;
+        /// <summary>
+        /// &lt; Direction of the rim light in degrees, 0..360.
+        /// </summary>
+        public int interactive;
+        /// <summary>
+        /// &lt; Respond to the control's hover and pressed states.
+        /// </summary>
+        public int reduced_transparency;
+        /// <summary>
+        /// &lt; Opaque fallback without backdrop capture.
+        /// </summary>
+        public int high_contrast;
+    }
+
+    /// <summary>
     /// What a tile shows, filled by the application when the tile is drawn.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
@@ -2283,10 +2348,8 @@ namespace Raven
         public static extern int Ris_initialized();
 
         /// <summary>
-        /// R_TRUE in the free edition of Raven (the default build): every
-        /// window shows a small watermark in its bottom right corner. R_FALSE in the
-        /// paid edition (the library built with -DRAVEN_PAID=ON), which shows none.
-        /// Nothing else differs; what you make with either one is yours.
+        /// @deprecated Raven no longer has editions: it is open source (Apache
+        /// License 2.0) and never shows a watermark. Always R_FALSE.
         /// </summary>
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern int Ris_free_edition();
@@ -2839,9 +2902,7 @@ namespace Raven
         public static extern void Rwindow_get_mouse_position(uint window, out float x, out float y);
 
         /// <summary>
-        /// Where the watermark of the free edition is drawn in the
-        /// window (logical units). R_FALSE, and zeros, in the paid edition.
-        /// It never takes the mouse; this is for layouts and tests that read pixels.
+        /// @deprecated Raven no longer shows a watermark. Always R_FALSE, with zeros.
         /// </summary>
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern int Rwindow_get_watermark_rect(uint window, out float x, out float y, out float width, out float height);
@@ -2969,6 +3030,42 @@ namespace Raven
 
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Rwindow_unregister_shortcut(uint window, RKey key, uint modifiers);
+
+        /// <summary>
+        /// Fills defaults. NULL is ignored.
+        /// </summary>
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Rliquid_glass_defaults(ref RLiquidGlass properties);
+
+        /// <summary>
+        /// Fills defaults. NULL is ignored.
+        /// </summary>
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Rliquid_glass_defaults(IntPtr properties);
+
+        /// <summary>
+        /// Copies properties; NULL removes the override. Does not change the material.
+        /// </summary>
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Rwidget_set_liquid_glass(uint widget, ref RLiquidGlass properties);
+
+        /// <summary>
+        /// Copies properties; NULL removes the override. Does not change the material.
+        /// </summary>
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Rwidget_set_liquid_glass(uint widget, IntPtr properties);
+
+        /// <summary>
+        /// Copies the widget override, or defaults if absent.
+        /// </summary>
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Rwidget_get_liquid_glass(uint widget, ref RLiquidGlass properties);
+
+        /// <summary>
+        /// Copies the widget override, or defaults if absent.
+        /// </summary>
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Rwidget_get_liquid_glass(uint widget, IntPtr properties);
 
         /// <summary>
         /// Switches to a built-in theme: replaces every theme color and

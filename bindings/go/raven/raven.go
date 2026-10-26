@@ -395,6 +395,7 @@ const (
 	R_MATERIAL_FROSTED_GLASS RMaterial = 0x02E2
 	R_MATERIAL_TINTED_GLASS  RMaterial = 0x02E3
 	R_MATERIAL_DEFAULT       RMaterial = 0x02E4
+	R_MATERIAL_LIQUID_GLASS  RMaterial = 0x02E5
 )
 
 // RColorRole: Color roles. The comment lists the widgets reading each role.
@@ -894,9 +895,8 @@ func IsInitialized() int {
 	return int(C.Ris_initialized())
 }
 
-// IsFreeEdition: R_TRUE in the free edition of Raven (the default build): every window shows a small
-// watermark in its bottom right corner. R_FALSE in the paid edition (the library built with -DRAVEN_PAID=ON),
-// which shows none. Nothing else differs; what you make with either one is yours.
+// IsFreeEdition: @deprecated Raven no longer has editions: it is open source (Apache License 2.0) and never
+// shows a watermark. Always R_FALSE.
 func IsFreeEdition() int {
 	return int(C.Ris_free_edition())
 }
@@ -1284,9 +1284,7 @@ func WindowGetMousePosition(window ID) (x float32, y float32) {
 	return
 }
 
-// WindowGetWatermarkRect: Where the watermark of the free edition is drawn in the window (logical units).
-// R_FALSE, and zeros, in the paid edition. It never takes the mouse; this is for layouts and tests that read
-// pixels.
+// WindowGetWatermarkRect: @deprecated Raven no longer shows a watermark. Always R_FALSE, with zeros.
 func WindowGetWatermarkRect(window ID) (result int, x float32, y float32, width float32, height float32) {
 	var x_ C.float
 	var y_ C.float
@@ -5137,17 +5135,17 @@ func AccessibilityIsScreenReaderActive() int {
 // Raction_bind, Raction_set_default_handler, Rerror_get_last, Rerror_set_callback, Rwindow_get_frame_stats
 // Rwindow_set_icon, Rwindow_set_close_callback, Rwindow_set_resize_callback, Rwindow_set_drop_callback
 // Rwindow_set_user_handle, Rwindow_get_user_handle, Rwindow_get_native_handle, Rwindow_capture
-// Rwindow_inject_drop, Rwindow_set_event_hook, Rtexture_create_from_pixels, Rtexture_update, Rimage_decode
-// Rpixels_free, Rwidget_set_user_handle, Rwidget_get_user_handle, Rwidget_set_destroy_callback
-// Rwidget_set_event_callback, Rwidget_set_drop_callback, Rtab_view_set_changed_callback
-// Rtab_view_set_close_callback, Rexpander_set_changed_callback, Rlabel_set_link_callback
-// Rbutton_set_clicked_callback, Rcheckbox_set_changed_callback, Rslider_set_changed_callback
-// Rtext_input_set_changed_callback, Rtext_input_set_committed_callback, Rspin_box_set_changed_callback
-// Rcombo_box_set_changed_callback, Rlist_view_set_virtual_items, Rlist_view_set_selection_changed_callback
-// Rlist_view_set_activated_callback, Rtree_item_set_user_handle, Rtree_item_get_user_handle
-// Rtree_view_set_selection_changed_callback, Rtree_view_set_activated_callback
-// Rtree_view_set_context_callback, Rmenu_item_set_clicked_callback, Rtile_view_set_items
-// Rtile_view_set_drag_data_callback, Rtile_view_set_selection_changed_callback
+// Rwindow_inject_drop, Rwindow_set_event_hook, Rliquid_glass_defaults, Rwidget_set_liquid_glass
+// Rwidget_get_liquid_glass, Rtexture_create_from_pixels, Rtexture_update, Rimage_decode, Rpixels_free
+// Rwidget_set_user_handle, Rwidget_get_user_handle, Rwidget_set_destroy_callback, Rwidget_set_event_callback
+// Rwidget_set_drop_callback, Rtab_view_set_changed_callback, Rtab_view_set_close_callback
+// Rexpander_set_changed_callback, Rlabel_set_link_callback, Rbutton_set_clicked_callback
+// Rcheckbox_set_changed_callback, Rslider_set_changed_callback, Rtext_input_set_changed_callback
+// Rtext_input_set_committed_callback, Rspin_box_set_changed_callback, Rcombo_box_set_changed_callback
+// Rlist_view_set_virtual_items, Rlist_view_set_selection_changed_callback, Rlist_view_set_activated_callback
+// Rtree_item_set_user_handle, Rtree_item_get_user_handle, Rtree_view_set_selection_changed_callback
+// Rtree_view_set_activated_callback, Rtree_view_set_context_callback, Rmenu_item_set_clicked_callback
+// Rtile_view_set_items, Rtile_view_set_drag_data_callback, Rtile_view_set_selection_changed_callback
 // Rtile_view_set_activated_callback, Rtile_view_set_context_callback, Rlanguage_register, Rlanguage_get
 // Rtext_editor_set_completion_callback, Rtext_editor_set_changed_callback, Rdock_area_set_close_callback
 // Rdock_area_set_changed_callback, Risland_set_changed_callback, Rcolor_picker_set_changed_callback

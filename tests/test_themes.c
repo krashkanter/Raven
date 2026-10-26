@@ -545,11 +545,59 @@ static void test_live_reload(void) {
 	remove(library);
 }
 
+static void test_liquid_glass(void) {
+	const char* xml = "<Border Material=\"LiquidGlass\" LiquidGlass.Frost=\"0.4\" LiquidGlass.Refraction=\"32\" LiquidGlass.Tint=\"#33669980\" LiquidGlass.Reflection=\"0.7\" LiquidGlass.LightAngle=\"90\"/>";
+	Rid panel = Rwidget_create_from_xml(xml, strlen(xml));
+	RLiquidGlass look, actual;
+	CHECK(Rwidget_is_valid(panel));
+	CHECK(Rwidget_get_material(panel) == R_MATERIAL_LIQUID_GLASS);
+	Rwidget_get_liquid_glass(panel, &look);
+	CHECK(fabsf(look.frost - 0.4f) < 0.0001f);
+	CHECK(look.refraction == 32);
+	CHECK(fabsf(look.tint[0] - 0.2f) < 0.005f);
+	CHECK(fabsf(look.tint[2] - 0.6f) < 0.005f);
+	CHECK(look.light_angle == 90);
+	look.dispersion = 4;
+	look.reflection = -1;
+	look.bevel = 1000;
+	look.high_contrast = 1;
+	Rwidget_set_liquid_glass(panel, &look);
+	Rwidget_get_liquid_glass(panel, &actual);
+	CHECK(actual.dispersion == 1 && actual.reflection == 0 && actual.bevel == 96);
+	CHECK(actual.high_contrast == 1);
+	look.frost = NAN;
+	EXPECT_ERRORS_BEGIN();
+	Rwidget_set_liquid_glass(panel, &look);
+	EXPECT_ERRORS_END(1);
+	Rwidget_get_liquid_glass(panel, &look);
+	CHECK(look.frost == actual.frost);
+	Rwidget_set_liquid_glass(panel, NULL);
+	Rwidget_get_liquid_glass(panel, &look);
+	Rliquid_glass_defaults(&actual);
+	CHECK(look.frost == actual.frost && look.bevel == actual.bevel);
+    CHECK(Rwidget_set_attribute(panel, "LiquidGlass.Interactive", "false"));
+    CHECK(Rwidget_set_attribute(panel, "LiquidGlass.ReducedTransparency", "true"));
+    CHECK(Rwidget_set_attribute(panel, "LiquidGlass.HighContrast", "true"));
+    CHECK(Rwidget_set_attribute(panel, "LiquidGlass.ShadowColor", "#10203040"));
+    CHECK(Rwidget_set_attribute(panel, "LiquidGlass.Rim", "#99887766"));
+    Rwidget_get_liquid_glass(panel, &look);
+    CHECK(!look.interactive && look.reduced_transparency && look.high_contrast);
+    CHECK(fabsf(look.shadow_color[0] - 16.0f/255) < 0.001f);
+    CHECK(fabsf(look.rim[2] - 119.0f/255) < 0.001f);
+	Rtheme_set_material(R_MATERIAL_LIQUID_GLASS);
+	CHECK(Rtheme_get_material() == R_MATERIAL_LIQUID_GLASS);
+	Rwidget_set_material(panel, R_MATERIAL_DEFAULT);
+	CHECK(Rwidget_get_material(panel) == R_MATERIAL_LIQUID_GLASS);
+	Rtheme_apply(R_THEME_DARK);
+	Rwidget_destroy(panel);
+}
+
 int main(void) {
 	if (!test_init(0)) {
 		printf("test_themes: cannot initialize Raven\n");
 		return 1;
 	}
+	RUN(test_liquid_glass);
 	RUN(test_styles);
 	RUN(test_accent_and_scopes);
 	RUN(test_theme_files);

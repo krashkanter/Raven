@@ -91,6 +91,7 @@ static void rvn_widget_free(rvn_widget_t* widget) {
 	for (i = 0; i < widget->child_count; i++) rvn_widget_free(widget->children[i]);
 	rvn_free(widget->children);
 	rvn_free(widget->style);
+	rvn_free(widget->liquid_glass);
 	rvn_free(widget->fx);
 	rvn_free(widget->name);
 	rvn_free(widget->classes);

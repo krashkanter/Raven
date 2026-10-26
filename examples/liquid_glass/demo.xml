@@ -1,0 +1,32 @@
+<Window Title="Raven / Liquid Glass Lab" Width="1240" Height="840" MinWidth="960" MinHeight="680">
+  <HBox>
+    <Border Width="330" Padding="22" Background="#161B28">
+      <VBox Spacing="10">
+        <Label TextSize="24">Material lab</Label>
+        <Label Opacity="0.65">LIQUID GLASS / RAVEN</Label>
+        <ScrollBox Slot.Fill="1"><VBox Name="controls" Spacing="8"/></ScrollBox>
+      </VBox>
+    </Border>
+    <Overlay Slot.Fill="1">
+      <Custom Name="backdrop" Clip="true"/>
+      <VBox Slot.Padding="48" Spacing="14">
+        <Label TextSize="42">Light, shaped.</Label>
+        <Label TextSize="17" Opacity="0.8">Real backdrop refraction. Every property, live.</Label>
+      </VBox>
+      <Border Name="hero" Material="LiquidGlass" CornerRadius="38" Padding="36" Width="510" Height="270" Slot.HAlign="Center" Slot.VAlign="Center">
+        <VBox Spacing="18">
+          <Label TextSize="13">THE MATERIAL COLLECTION / 01</Label>
+          <Label TextSize="36">A window into color.</Label>
+          <Label Wrap="true" TextSize="16">Move the controls to bend the scene, split its colors, soften the light, or change the tint.</Label>
+          <HBox Spacing="14">
+            <Button Name="action" Material="LiquidGlass" Text="Feel the glass" Width="170"/>
+            <Label Slot.VAlign="Center" Opacity="0.75">Hover or press</Label>
+          </HBox>
+        </VBox>
+      </Border>
+      <Border Name="pill" Material="LiquidGlass" CornerRadius="40" Padding="24,16" Slot.HAlign="Center" Slot.VAlign="Bottom" Slot.Padding="0,0,0,48">
+        <Label TextSize="15">REFRACTION  /  REFLECTION  /  DISPERSION</Label>
+      </Border>
+    </Overlay>
+  </HBox>
+</Window>
